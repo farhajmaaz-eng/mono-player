@@ -13,6 +13,7 @@ import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -39,7 +40,7 @@ private enum class Tab(val label: String) { HOME("Home"), SONGS("Songs"), ALBUMS
         AnimatedVisibility(nowPlaying, enter=slideInVertically { it }, exit=slideOutVertically { it }) { NowPlaying(playback, vm, { nowPlaying=false }) }
     } }
 }
-private fun tabIcon(tab: Tab) = when(tab) { Tab.HOME -> Icons.Default.Home; Tab.SONGS -> Icons.Default.QueueMusic; Tab.ALBUMS -> Icons.Default.Album; Tab.ARTISTS -> Icons.Default.Person; Tab.PLAYLISTS -> Icons.Default.QueueMusic }
+@Composable private fun tabIcon(tab: Tab) = when(tab) { Tab.HOME -> Icons.Default.Home; Tab.SONGS -> Icons.Default.QueueMusic; Tab.ALBUMS -> Icons.Default.Album; Tab.ARTISTS -> Icons.Default.Person; Tab.PLAYLISTS -> Icons.Default.QueueMusic }
 @Composable private fun Header(title: String, trailing: (@Composable () -> Unit)? = null) = Row(Modifier.fillMaxWidth().padding(24.dp, 24.dp, 18.dp), verticalAlignment=Alignment.CenterVertically) { Text(title, fontSize=34.sp, fontWeight=FontWeight.Bold, letterSpacing=(-1).sp, modifier=Modifier.weight(1f)); trailing?.invoke() }
 @Composable private fun HomeScreen(tracks: List<Track>, vm: LibraryViewModel, songs: () -> Unit) = LazyColumn(contentPadding=PaddingValues(bottom=24.dp)) { item { Header("MonoPlayer", { IconButton(onClick=songs) { Icon(Icons.Default.Search, "Search library") } }) }; if (tracks.isEmpty()) item { Empty("Your music will appear here", "Allow music access, then add audio files to your device.") } else { item { HomeSection("Recently added", tracks.sortedByDescending { it.dateAdded }.take(8), vm) }; val fav=tracks.filter { it.favorite }; if(fav.isNotEmpty()) item { HomeSection("Favorites", fav.take(8), vm) }; val played=tracks.filter { it.playCount>0 }.sortedByDescending { it.lastPlayed }; if(played.isNotEmpty()) item { HomeSection("Recently played", played.take(8), vm) } } }
 @Composable private fun HomeSection(title: String, tracks: List<Track>, vm: LibraryViewModel) { Text(title, fontSize=21.sp,fontWeight=FontWeight.Bold,modifier=Modifier.padding(24.dp,14.dp)); LazyRow(contentPadding=PaddingValues(horizontal=24.dp), horizontalArrangement=Arrangement.spacedBy(14.dp)) { items(tracks, key={it.id}) { t -> Column(Modifier.width(144.dp).clickable { vm.play(tracks, tracks.indexOf(t)) }) { Artwork(t, Modifier.size(144.dp)); Text(t.title, maxLines=1,overflow=TextOverflow.Ellipsis,fontWeight=FontWeight.SemiBold,modifier=Modifier.padding(top=8.dp)); Text(t.artist,maxLines=1,overflow=TextOverflow.Ellipsis,color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=13.sp) } } } }
